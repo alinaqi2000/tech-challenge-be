@@ -24,6 +24,7 @@ services:
       args:
         TIMEZONE: ${TIMEZONE}
         DIR: users_service
+    restart: always
     volumes:
       - ../users_service:/var/www/users_service
       - challenge_users_var:/var/www/users_service/var

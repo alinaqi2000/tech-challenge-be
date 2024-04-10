@@ -43,26 +43,29 @@ project-root/
 3. If you have `make` installed:
 
     ```bash
-    make setup
+    # Setup docker
+    make docker
+    
+    # Setup database migrations
+    make database
+    
+    # Monitor notifications_serive logs
+    make notifications-monitor
     ```
 
    Otherwise:
-
+   
     ```bash
-    # Install Docker services
-    docker compose up -d              
-    
-    # Install users_service dependencies
+    # Setup docker
+    docker compose up -d --build         
     docker compose exec users_service sh -c "cd /var/www/users_service && composer install"
     
-    # Install notifications_service dependencies
-    docker compose exec notifications_service sh -c "cd /var/www/notifications_service && composer install"
     
-    # Create notification log file if it does not exist
-    docker compose exec notifications_service touch ./var/log/notification.log
+    # Setup database migrations
+    docker compose exec users_service php bin/console doctrine:migration:migrate -n
     
     # Monitor notifications_serive logs
-    docker compose exec notifications_service tail -f ./var/log/notification.log
+    docker compose exec notifications_service touch ./var/log/notification.log && docker compose exec notifications_service tail -f ./var/log/notification.log
     ```
 
 ## Usage

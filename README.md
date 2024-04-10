@@ -49,19 +49,19 @@ project-root/
    Otherwise:
 
     ```bash
-    // Install Docker services
+    # Install Docker services
     docker compose up -d              
     
-    // Install users_service dependencies
+    # Install users_service dependencies
     docker compose exec users_service sh -c "cd /var/www/users_service && composer install"
     
-    // Install notifications_service dependencies
+    # Install notifications_service dependencies
     docker compose exec notifications_service sh -c "cd /var/www/notifications_service && composer install"
     
-    // Create notification log file if it does not exist
+    # Create notification log file if it does not exist
     docker compose exec notifications_service touch ./var/log/notification.log
     
-    // Monitor notifications_serive logs
+    # Monitor notifications_serive logs
     docker compose exec notifications_service tail -f ./var/log/notification.log
     ```
 

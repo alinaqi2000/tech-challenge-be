@@ -17,6 +17,7 @@ services:
       - 3306:3306
     networks:
       - challenge_app
+
   users_service:
     build:
       context: ./php
@@ -27,23 +28,28 @@ services:
       - ../users_service:/var/www/users_service
       - challenge_users_var:/var/www/users_service/var
       - challenge_users_vendor:/var/www/users_service/vendor
+    depends_on:
+      - db
     networks:
       - challenge_app
+
   notifications_service:
     build:
       context: ./php
       args:
         TIMEZONE: ${TIMEZONE}
         DIR: notifications_service
+    restart: always
     volumes:
       - ../notifications_service:/var/www/notifications_service
       - challenge_notifications_var:/var/www/notifications_service/var
       - challenge_notifications_vendor:/var/www/notifications_service/vendor
-    command: "php bin/console messenger:consume async -vv"
     networks:
       - challenge_app
+    command: sh -c "composer install && php bin/console messenger:consume async -vv"
     depends_on:
       - rabbitmq
+
   nginx:
     build:
       context: ./nginx
@@ -56,6 +62,7 @@ services:
       - challenge_app
     env_file:
       - .env.nginx
+
   rabbitmq:
     image: rabbitmq:3.13.1-management
     ports:

@@ -1,0 +1,76 @@
+version: "3"
+
+services:
+  db:
+    image: mysql:latest
+    platform: linux/x86_64
+    restart: always
+    volumes:
+      - "db_app:/var/lib/mysql"
+      - ./mysql/my.cnf:/etc/mysql/my.cnf
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      MYSQL_DATABASE: "${MYSQL_DATABASE}"
+      MYSQL_USER: "${MYSQL_USER}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+    ports:
+      - 3306:3306
+    networks:
+      - challenge_app
+  users_service:
+    build:
+      context: ./php
+      args:
+        TIMEZONE: ${TIMEZONE}
+        DIR: users_service
+    volumes:
+      - ../users_service:/var/www/users_service
+      - challenge_users_var:/var/www/users_service/var
+      - challenge_users_vendor:/var/www/users_service/vendor
+    networks:
+      - challenge_app
+  notifications_service:
+    build:
+      context: ./php
+      args:
+        TIMEZONE: ${TIMEZONE}
+        DIR: notifications_service
+    volumes:
+      - ../notifications_service:/var/www/notifications_service
+      - challenge_notifications_var:/var/www/notifications_service/var
+      - challenge_notifications_vendor:/var/www/notifications_service/vendor
+    command: "php bin/console messenger:consume async -vv"
+    networks:
+      - challenge_app
+    depends_on:
+      - rabbitmq
+  nginx:
+    build:
+      context: ./nginx
+    volumes:
+      - ../users_service:/var/www/users_service
+      - ../notifications_service:/var/www/notifications_service
+    ports:
+      - 80:80
+    networks:
+      - challenge_app
+    env_file:
+      - .env.nginx
+  rabbitmq:
+    image: rabbitmq:3.13.1-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - challenge_app
+
+volumes:
+  challenge_users_var:
+  challenge_users_vendor:
+  challenge_notifications_var:
+  challenge_notifications_vendor:
+  db_app:
+
+networks:
+  challenge_app:
+    driver: bridge
